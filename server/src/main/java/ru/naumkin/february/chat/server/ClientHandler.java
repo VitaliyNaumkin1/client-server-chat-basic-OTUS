@@ -10,12 +10,13 @@ public class ClientHandler {
     private Socket socket;
     private DataOutputStream out;
     private DataInputStream in;
-    private String username;
+    private String userName;
+
 
     private static int clientsCount = 0;
 
-    public String getUsername() {
-        return username;
+    public String getUserName() {
+        return userName;
     }
 
     public ClientHandler(Server server, Socket socket) throws IOException {
@@ -24,17 +25,24 @@ public class ClientHandler {
         this.in = new DataInputStream(socket.getInputStream());
         this.out = new DataOutputStream(socket.getOutputStream());
         clientsCount++;
-        this.username = "user" + clientsCount;
+        this.userName = "user" + clientsCount;
         new Thread(() -> {
             try {
                 while (true) {
                     String message = in.readUTF();
+                    String[] messageElements = message.split(" ", 3);
                     if (message.startsWith("/")) {
                         if (message.equals("/exit")) {
                             break;
                         }
+                        if (message.startsWith("/w")) {
+                            String receiverUserName = messageElements[1];
+                            String privateMessage = messageElements[2];
+                            server.sendPrivateMessage(this, receiverUserName, privateMessage);
+                        }
+                    } else {
+                        server.broadcastMessage(userName + ": " + message);
                     }
-                    server.broadcastMessage(username + ": " + message);
                 }
             } catch (IOException e) {
                 e.printStackTrace();

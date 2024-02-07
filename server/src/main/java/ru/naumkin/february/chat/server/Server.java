@@ -39,11 +39,26 @@ public class Server {
 
     public synchronized void subscribe(ClientHandler clientHandler) {
         clients.add(clientHandler);
-        System.out.println("Подключился новый клиент " + clientHandler.getUsername());
+        System.out.println("Подключился новый клиент " + clientHandler.getUserName());
     }
 
     public synchronized void unsubscribe(ClientHandler clientHandler) {
         clients.remove(clientHandler);
-        System.out.println("Отключился клиент " + clientHandler.getUsername());
+        System.out.println("Отключился клиент " + clientHandler.getUserName());
+    }
+
+    public synchronized void sendPrivateMessage(ClientHandler sender, String receiverUserName, String message) {
+        ClientHandler receiver = null;
+        for (int i = 0; i < clients.size(); i++) {
+            if (clients.get(i).getUserName().equals(receiverUserName)) {
+                receiver = clients.get(i);
+            }
+        }
+        if (receiver == null) {
+            sender.sendMessage("!!! ---> Не возможно отправить сообщение пользователю: " + receiverUserName + " - такого пользователя нету в чате");
+            return;
+        }
+        sender.sendMessage("--> вы написали пользователю " + sender.getUserName() + " : " + message);
+        receiver.sendMessage("--> Пользователь " + sender.getUserName() + " пишет вам: " + message);
     }
 }
